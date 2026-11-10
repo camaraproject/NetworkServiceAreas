@@ -1,0 +1,385 @@
+Feature: CAMARA Service Areas API, vwip - Operations
+  # Input to be provided by the implementation to the tester
+  #
+  # Implementation indications:
+  # * apiRoot: API root of the server URL
+  #
+  # Testing assets:
+  # * At least one existing area
+  # * Valid area name (for byName filter testing)
+  # * Valid network profile ID (for byNetworkProfileId filter testing)
+  # * Valid QoS profile name (for byQosProfileName filter testing)
+  # * Valid coordinates (latitude, longitude for atLocation filter testing)
+  # * A combination of area name, network profile ID and QoS profile name matching at least one area (for combined filter testing)
+  # * At least two existing areas (for pagination testing)
+  # * A non-existent UUID (for 404 error testing)
+  # * A malformed UUID (for 400 error testing)
+  #
+  # References to OAS spec schemas refer to schemas specified in service-areas.yaml
+
+  Background: Common areas setup
+    Given an environment at "apiRoot"
+    And the header "Authorization" is set to a valid access token
+    And the header "x-correlator" complies with the schema at "#/components/schemas/XCorrelator"
+
+  # Success scenarios for POST /retrieve-service-areas
+
+  @service_areas_retrieveServiceAreas_01_success_all_first_page
+  Scenario: Retrieve first page of all service areas (basic success)
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+
+  @service_areas_retrieveServiceAreas_02_success_filtered_by_atLocation_first_page
+  Scenario: List first page of areas filtered by atLocation
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.atLocation" is set to valid coordinates
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.area" whose geometry contains the coordinates specified in "$.atLocation"
+
+  @service_areas_retrieveServiceAreas_03_success_filtered_by_overlappingArea_first_page
+  Scenario: List first page of areas filtered by overlappingArea
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.overlappingArea" is set to a valid area
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.area" whose geometry overlaps the area specified in "$.overlappingArea"
+
+  @service_areas_retrieveServiceAreas_04_success_filtered_by_coveringArea_first_page
+  Scenario: List first page of areas filtered by coveringArea
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.coveringArea" is set to a valid area
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.area" whose geometry fully covers the area specified in "$.coveringArea"
+
+  @service_areas_retrieveServiceAreas_05_success_filtered_by_byName_first_page
+  Scenario: List first page of areas filtered by byName
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.byName" is set to a valid area name
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.name" equal to the value specified in "$.byName"
+
+  @service_areas_retrieveServiceAreas_06_success_filtered_by_byNetworkProfileId_first_page
+  Scenario: List first page of areas filtered by byNetworkProfileId
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.byNetworkProfileId" is set to a valid network profile ID
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.networkProfiles" containing the value specified in "$.byNetworkProfileId"
+
+  @service_areas_retrieveServiceAreas_07_success_filtered_by_byQosProfileName_first_page
+  Scenario: List first page of areas filtered by byQosProfileName
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the request body property "$.byQosProfileName" is set to a valid QoS profile name
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.qosProfiles" containing the value specified in "$.byQosProfileName"
+
+  @service_areas_retrieveServiceAreas_08_success_filtered_by_several_properties_first_page
+  Scenario: List first page of areas matching all of several given filters
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    # RetrieveServiceAreasRequest returns the service areas that match all the given properties
+    And the request body property "$.byName" is set to a valid area name
+    And the request body property "$.byNetworkProfileId" is set to a valid network profile ID
+    And the request body property "$.byQosProfileName" is set to a valid QoS profile name
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array where each item complies with the OAS schema at "/components/schemas/ServiceArea"
+    And each item in the response array has property "$.name" equal to the value specified in "$.byName"
+    And each item in the response array has property "$.networkProfiles" containing the value specified in "$.byNetworkProfileId"
+    And each item in the response array has property "$.qosProfiles" containing the value specified in "$.byQosProfileName"
+
+  @service_areas_retrieveServiceAreas_09_success_pagination
+  Scenario: Retrieve a specific page of service areas with an explicit page size
+    Given there are at least 2 service areas
+    And the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "/components/schemas/RetrieveServiceAreasRequest"
+    And the query parameter "perPage" is set to 1
+    And the query parameter "page" is set to 2
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response header "X-Total-Count" exists and is the total number of service areas
+    And the response header "X-Total-Pages" exists and is the total number of pages
+    And the response header "Link" exists
+    And the response body complies with the OAS schema at "/components/schemas/ServiceAreasPage"
+    And the response property "$.items" is an array with exactly 1 item
+    And the response property "$.pagination.page" is equal to the query parameter "page"
+    And the response property "$.pagination.perPage" is equal to the query parameter "perPage"
+    And the response property "$.pagination.totalCount" has the same value as the response header "X-Total-Count"
+    And the response property "$.pagination.totalPages" has the same value as the response header "X-Total-Pages"
+
+  # Success scenarios for GET /areas/{areaId}
+
+  @service_areas_readServiceArea_01_success
+  Scenario: Get details of a specific service area
+    Given the resource "/service-areas/vwip/areas/{areaId}"
+    And the path parameter "areaId" is set to a valid service area ID
+    When the request "readServiceArea" is sent
+    Then the response status code is 200
+    And the response header "Content-Type" is "application/json"
+    And the response header "x-correlator" has the same value as the request header "x-correlator"
+    And the response body complies with the OAS schema at "/components/schemas/ServiceArea"
+    And the response property "$.id" is equal to the path parameter "areaId"
+
+############################ Error Scenarios - retrieveServiceAreas #############################################
+
+  # Syntax Error scenarios
+
+  @service_areas_retrieveServiceAreas_400.01_schema_not_compliant
+  Scenario: Invalid Argument. Generic Syntax Exception
+    Given the request body is included but is not compliant with the schema at "#/components/schemas/RetrieveServiceAreasRequest"
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 400
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_400.02_no_request_body
+  Scenario: Missing request body
+    Given the request body is not included
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 400
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_400.06_invalid_x-correlator
+  Scenario: Retrieve service areas with invalid x-correlator header
+    Given the header "x-correlator" does not comply with the schema at "#/components/schemas/XCorrelator"
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 400
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_400.07_invalid_coordinates
+  Scenario: Retrieve service areas with invalid coordinates
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "#/components/schemas/RetrieveServiceAreasRequest"
+    # The latitude is outside the range defined in the schema (-90 to 90)
+    And the request body property "$.atLocation.latitude" is set to 999
+    And the request body property "$.atLocation.longitude" is set to 7.10066
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 400
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_400.08_invalid_pagination
+  Scenario Outline: Error response for invalid pagination parameters
+    Given the resource "/service-areas/vwip/retrieve-service-areas"
+    And the header "Content-Type" is set to "application/json"
+    And the request body is set to a request body compliant with the schema at "#/components/schemas/RetrieveServiceAreasRequest"
+    And the query parameter "<query_parameter>" is set to "<invalid_value>"
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 400
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+    Examples:
+      | query_parameter | invalid_value |
+      | page            | 0             |
+      | perPage         | 0             |
+      | perPage         | 101           |
+
+  # Service Error scenarios
+
+  ## Authentication/Authorization errors
+
+    # Generic 401 errors
+
+  @service_areas_retrieveServiceAreas_401.01_no_authorization_header
+  Scenario: Retrieve service areas without "Authorization" header
+    Given the header "Authorization" is not sent
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_401.02_expired_access_token
+  Scenario: Retrieve service areas with expired access token
+    Given the header "Authorization" is set to an expired access token
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_retrieveServiceAreas_401.03_invalid_access_token
+  Scenario: Retrieve service areas with invalid access token
+    Given the header "Authorization" is set to an invalid access token
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  # Generic 403 errors
+
+  @service_areas_retrieveServiceAreas_403.01_missing_access_token_scope
+  Scenario: Retrieve service areas with missing access token scope
+    Given the header "Authorization" is set to an access token that does not include scope "service-areas:areas:read"
+    When the request "retrieveServiceAreas" is sent
+    Then the response status code is 403
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 403
+    And the response property "$.code" is "PERMISSION_DENIED"
+    And the response property "$.message" contains a user friendly text
+
+############################ Error Scenarios - readServiceArea #############################################
+  # Syntax Error scenarios
+
+  @service_areas_readServiceArea_400.06_invalid_x-correlator
+  Scenario: Read service area with invalid x-correlator header
+    Given the header "x-correlator" does not comply with the schema at "#/components/schemas/XCorrelator"
+    When the request "readServiceArea" is sent
+    Then the response status code is 400
+    And the response property "$.status" is 400
+    And the response property "$.code" is "INVALID_ARGUMENT"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_readServiceArea_400.08_invalid_uuid
+  Scenario: Read service area with invalid UUID
+    Given the resource "/service-areas/vwip/areas/{areaId}"
+    And the path parameter "areaId" is set to an invalid UUID
+    When the request "readServiceArea" is sent
+    Then the response status code is 400
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response property "$.code" is "INVALID_ARGUMENT"
+
+  # Service Error scenarios
+
+  ## Authentication/Authorization errors
+
+    # Generic 401 errors
+
+  @service_areas_readServiceArea_401.01_no_authorization_header
+  Scenario: Read service area without "Authorization" header
+    Given the header "Authorization" is not sent
+    When the request "readServiceArea" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_readServiceArea_401.02_expired_access_token
+  Scenario: Read service area with expired access token
+    Given the header "Authorization" is set to an expired access token
+    When the request "readServiceArea" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  @service_areas_readServiceArea_401.03_invalid_access_token
+  Scenario: Read service area with invalid access token
+    Given the header "Authorization" is set to an invalid access token
+    When the request "readServiceArea" is sent
+    Then the response status code is 401
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 401
+    And the response property "$.code" is "UNAUTHENTICATED"
+    And the response property "$.message" contains a user friendly text
+
+  # Generic 403 errors
+
+  @service_areas_readServiceArea_403.01_missing_access_token_scope
+  Scenario: Read service area with missing access token scope
+    Given the header "Authorization" is set to an access token that does not include scope "service-areas:areas:read"
+    When the request "readServiceArea" is sent
+    Then the response status code is 403
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 403
+    And the response property "$.code" is "PERMISSION_DENIED"
+    And the response property "$.message" contains a user friendly text
+
+  # Generic 404 Errors
+
+  @service_areas_readServiceArea_404.01_not_found
+  Scenario: non-existing "{areaId}"
+    Given the resource "/service-areas/vwip/areas/{areaId}"
+    And the path parameter "areaId" is set to a random UUID
+    When the request "readServiceArea" is sent
+    Then the response status code is 404
+    And the response header "x-correlator" has same value as the request header "x-correlator"
+    And the response header "Content-Type" is "application/json"
+    And the response property "$.status" is 404
+    And the response property "$.code" is "NOT_FOUND"
+    And the response property "$.message" contains a user friendly text
