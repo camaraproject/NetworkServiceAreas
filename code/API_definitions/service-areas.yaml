@@ -1,35 +1,33 @@
 openapi: 3.0.3
 info:
-  title: Dedicated Network - Areas
+  title: Service Areas
   description: |
 
     # Introduction
 
-    This API allows for discovering available network service areas, which are the geographical areas offered by the network provider where consistent coverage according to indicated network profile(s) and QoS profiles is provided, and which is to be used in conjunction with the Dedicated Network API.
+    This API allows for discovering available service areas, which are the geographical areas offered by the network provider where consistent coverage according to indicated network profile(s) and QoS profiles is provided, and which is to be used in conjunction with the Dedicated Network API.
 
-    For more information about the Dedicated Network APIs, see the _GeneralDescription_ document in the Dedicated Networks [repository](https://github.com/camaraproject/DedicatedNetworks/).
+    # Service Areas
 
-    # Network Service Areas
+    A Service Area represents a geographical area with coverage consistent with the characteristics of the Dedicated Network profiles and the QoS profiles supported in the area. It enables API Consumers to select the geographical area where they can expect to consume the reserved network connectivity resources. A Service Area may have been pre-agreed between the API Provider and API Consumer.
 
-    A Network Service Area represents a geographical area with coverage consistent with the characteristics of the network profiles and the QoS profiles supported in the area. It enables API Consumers to select the geographical area where they can expect to consume the reserved network connectivity resources. A Network Service Area may have been pre-agreed between the API Provider and API Consumer.
+    A Service Area contains information about its geographical boundaries and the supported network profiles and QoS profiles. It is uniquely identified by a UUID identifier and it contains a human readable name and description.
 
-    A Network Service Area contains information about its geographical boundaries and the supported network profiles and QoS profiles. It is uniquely identified by a UUID identifier and it contains a human readable name and description.
-
-    # Network Service Areas API
+    # Service Areas API
 
     The key characteristics of the API include:
 
-    - Network Service Areas are read-only resources from the API Consumer perspective
+    - Service Areas are read-only resources from the API Consumer perspective
 
     - They are discoverable by POST operations
 
     - They are readable by GET operations
 
-    - Each Network Service Area has a unique identifier (areaId)
+    - Each Service Area has a unique identifier (areaId)
 
     - The areaId serves as a reference when creating a Dedicated Network
 
-    - The API returns only Network Service Areas that the API Consumer is eligible to use based on their agreements
+    - The API returns only Service Areas that the API Consumer is eligible to use based on their agreements
 
     <!-- CAMARA:MANDATORY:authorization-and-authentication:BEGIN -->
 
@@ -44,23 +42,23 @@ info:
 
     # Querying one or more Areas
 
-    All network service areas available to the API consumer can be queried by performing a `POST` operation on the `/retrieve-service-areas` endpoint.
+    All service areas available to the API consumer can be queried by performing a `POST` operation on the `/retrieve-service-areas` endpoint.
 
-    The API Consumer may provide the following input parameters as search criteria which must be matched for the network service area to be returned:
+    The API Consumer may provide the following input parameters as search criteria which must be matched for the service area to be returned:
 
-    - `atLocation` - to return the network service areas available at the given geographical location
+    - `atLocation` - to return the service areas available at the given geographical location
 
-    - `overlappingArea` - to return the network service areas whose geographical area overlaps (but does not fully cover) the input geographical area, where the input geographical area may be a circle or polygon
+    - `overlappingArea` - to return the service areas whose geographical area overlaps (but does not fully cover) the input geographical area, where the input geographical area may be a circle or polygon
 
-    - `coveringArea` -  to return the network service areas whose geographical area fully covers the input geographical area, where the input geographical area may be a circle or polygon
+    - `coveringArea` -  to return the service areas whose geographical area fully covers the input geographical area, where the input geographical area may be a circle or polygon
 
-    - `byName` - to return the network service areas with a name matching exactly the input string
+    - `byName` - to return the service areas with a name matching exactly the input string
 
-    - `byNetworkProfileId` - to return the network service areas which support the input network profile identifier
+    - `byNetworkProfileId` - to return the service areas which support the input network profile identifier
 
-    - `byQosProfileName` - to return the network service areas which support the input QoS profile name
+    - `byQosProfileName` - to return the service areas which support the input QoS profile name
 
-    The API consumer can get the details about a specific network service area by performing a `GET` operation on the `/areas/{areaId}` endpoint.
+    The API consumer can get the details about a specific service area by performing a `GET` operation on the `/areas/{areaId}` endpoint.
 
     <!-- CAMARA:MANDATORY:additional-error-responses:BEGIN -->
 
@@ -88,25 +86,25 @@ externalDocs:
   description: Product documentation at CAMARA
   url: https://github.com/camaraproject/DedicatedNetworks
 servers:
-  - url: "{apiRoot}/dedicated-network-areas/vwip"
+  - url: "{apiRoot}/service-areas/vwip"
     variables:
       apiRoot:
         default: http://localhost:9091
         description: API root, defined by the service provider, e.g. `api.example.com` or `api.example.com/somepath`
 tags:
   - name: Areas
-    description: Discover and read dedicated network service areas
+    description: Discover and read service areas
 paths:
   /retrieve-service-areas:
     post:
       tags:
         - Areas
-      summary: Retrieve network service areas, filtered by additional search criteria
-      description: Retrieve a paged list of network service areas matching the provided search criteria such as location, area overlap, name, or supported profiles.
-      operationId: retrieveNetworkServiceAreas
+      summary: Retrieve service areas, filtered by additional search criteria
+      description: Retrieve a paged list of service areas matching the provided search criteria such as location, area overlap, name, or supported profiles.
+      operationId: retrieveServiceAreas
       security:
         - openId:
-            - dedicated-network-areas:areas:read
+            - service-areas:areas:read
       parameters:
         - name: perPage
           in: query
@@ -130,7 +128,7 @@ paths:
         required: true
       responses:
         '200':
-          description: A paged list of available network service areas (can be empty)
+          description: A paged list of available service areas (can be empty)
           headers:
             x-correlator:
               $ref: "../common/CAMARA_common.yaml#/components/headers/x-correlator"
@@ -155,12 +153,12 @@ paths:
     get:
       tags:
         - Areas
-      summary: Read a network service area
-      description: Read detailed information about a specific network service area identified by its areaId.
-      operationId: readNetworkServiceArea
+      summary: Read a service area
+      description: Read detailed information about a specific service area identified by its areaId.
+      operationId: readServiceArea
       security:
         - openId:
-            - dedicated-network-areas:areas:read
+            - service-areas:areas:read
       parameters:
         - name: areaId
           description: Identifier of the service area
@@ -171,7 +169,7 @@ paths:
         - $ref: "../common/CAMARA_common.yaml#/components/parameters/x-correlator"
       responses:
         '200':
-          description: Information about the network service area
+          description: Information about the service area
           headers:
             x-correlator:
               $ref: "../common/CAMARA_common.yaml#/components/headers/x-correlator"
@@ -219,7 +217,7 @@ components:
       pattern: "^[a-zA-Z0-9_.-]+$"
 
     ServiceAreaId:
-      description: Unique identifier of a network service area
+      description: Unique identifier of a service area
       type: string
       format: uuid
       maxLength: 36
